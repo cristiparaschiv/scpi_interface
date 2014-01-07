@@ -1,0 +1,19 @@
+% Chapter 1
+
+\chapter{Concluzii} % Write in your own chapter title
+\label{Capitolul5}
+\lhead{Capitolul 5. \emph{Concluzii}} % Write in your own chapter title to set the page header
+
+Implementarea unei interfe\c{t}e SCPI pentru generatorul BK 4070 s-a demonstrat a fi la \^{i}ndem\^{a}n\u{a}, folosind cele doua utilitare Lex \c{s}i Yacc. Interfe\c{t}ei, fiind un rezultat al unui cod C, i se poate extinde oric\^{a}nd func\c{t}ionalitatea, indiferent de platforma pe care se lucreaz\u{a}.
+
+Pentru a se potrivi cu filozofia SCPI, o bun\u{a} implementare ar trebui s\u{a} completeze dinamismul SCPI dar s\u{a}-i men\c{t}in\u{a} \c{s}i coeren\c{t}a. Urm\u{a}toarele caracteristici SCPI au trebuit urm\u{a}rite \^{i}n realizarea acestei interfe\c{t}e:
+\begin{itemize}
+	\item Extensibilitate - SCPI este proiectat pentru a fi extins, iar versiuni noi vor introduce comenzi noi. O implementare configurabil\u{a} trebuie s\u{a} ofere o modalitate simpl\u{a} de ad\u{a}ugare de noi comenzi;
+	\item Portabilitate - o bun\u{a} implementare trebuie s\u{a} fie portabil\u{a};
+	\item Reutilizare \c{s}i mentenabilitate - un software bun este reutilizabil. SCPI accept\u{a} fundamental reutilizarea;
+	\item Scalabilitate - SCPI defineste unele seturi de comenzi pentru clase similare de instrumente. O bun\u{a} implementare trebuie s\u{a} ia \^{i}n considerare scenarii introduse de diferite instrumente.
+\end{itemize}
+
+Aplica\c{t}ia se poate extinde relativ u\c{s}or prin ad\u{a}ugarea urm\u{a}toarelor func\c{t}ionalit\u{a}\c{t}i: folosirea sintaxei prescurtate \c{s}i a comenzilor de interogare a instrumentului.
+
+Un instrument cu suport pentru standardul SCPI va fi \^{i}ntotdeauna preferat datorit\u{a} comenzilor standardizate \c{s}i a sintaxei specifice. Cu ajutorul acestui tip de interfa\c{t}\u{a}, se pot intruduce \^{i}n sistemul de m\u{a}surare \c{s}i control instrumente care au alte avantaje. Av\^{a}nd definit lexicul \^{i}n fi\c{s}ierul Lex, sintaxa se poate modifica cu u\c{s}urin\c{t}\u{a} pentru a satisface comenzile specifice unui alt instrument programabil. 
