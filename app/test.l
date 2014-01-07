@@ -1,0 +1,58 @@
+%{
+#include <stdio.h>
+#include <string.h>
+#include "y.tab.h"
+char fr, sr;
+%}
+
+%%
+SOURce:VOLTage		return VOLTAGE;
+
+SOURce:AM:SOURce	return AM_SOURCE;
+SOURce:AM:DEPTh		return AM_DEPTH;
+SOURce:AM:INTernal:FREQuency	return AM_FREQ;
+SOURce:APPLy:SIN	return AM_FREQ1;
+
+SOURce:FM:SOURce	return FM_SOURCE;
+SOURce:FM:INTernal:FREQuency	return FM_FREQ;
+SOURce:FM:DEViation	return FM_PEAK;
+SOURce:FREQuency	return FREQ;
+SOURce:FM:STATe		return FM_START;
+
+SOURce:SWEep:STATe	return SW_START;
+SOURce:FREQuency:STARt	return SW_FR_START;
+SOURce:FREQuency:STOP	return SW_FR_STOP;
+SOURce:SWEep:SPACing	return SW_LIN_LOG;
+SOURce:SWEep:DIRection	return SW_UP_DOWN;
+SOURce:SWEep:TIME	return SW_TIME;
+
+SOURce:PM:SOURce	return PM_SOURCE;
+SOURce:PM:INTernal:FREQuency	return PM_FREQ;
+SOURce:PM:DEViation	return PM_DEVIATION;
+SOURce:PM:STATe		return PM_START;
+
+SOURce:FREQuency:FSKey:SOURce	return FSK_SOURCE;
+SOURce:FREQuency:FSKey:MARK	return FSK_MARK;
+SOURce:FREQuency:FSKey:SPACe	return FSK_SPACE;
+SOURce:FSKey:STATe	return FSK_START;
+
+INTernal	{yylval=yytext;return INTERNAL;}
+EXTernal	{yylval=yytext;return EXTERNAL;}
+SOURce:AM:STATe	return START;
+ON	return OK;
+LINear	return LINEAR;
+LOGarithmic	return LOGARITHMIC;
+UP	return SW_UP;
+DOWN	return SW_DOWN;
+SINusoid	return SINUSOID;
+FUNCtion	return FUNCTION;
+TRIGger		return TRIGGER;
+NOISe		return NOISE;
+TRIangle	return TRIANGLE;
+
+[0-9]+			{yylval=atoi(yytext);return NUMBER;}
+\n
+[ \t]+
+','			return VIRGULA;
+
+%%

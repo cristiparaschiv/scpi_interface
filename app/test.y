@@ -1,0 +1,283 @@
+%{
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <windows.h>
+#include <tchar.h>
+HANDLE hPort;
+char DataBuffer[];
+char* surs;
+char* spac;
+char* dir;
+int freq1,freq,depth,peak,start_freq,stop_freq,time,deviat,level,n1,n2,len;
+%}
+
+%token AM_SOURCE AM_DEPTH AM_FREQ AM_FREQ1 INTERNAL EXTERNAL NUMBER START VIRGULA VOLTAGE
+%token FM_SOURCE FM_FREQ FM_PEAK FREQ FM_START OK
+%token SW_START SW_FR_START SW_FR_STOP SW_LIN_LOG SW_UP_DOWN SW_TIME LINEAR LOGARITHMIC SW_UP SW_DOWN
+%token PM_SOURCE PM_FREQ PM_DEVIATION PM_START
+%token SINUSOID FUNCTION TRIGGER NOISE TRIANGLE
+%token FSK_SOURCE FSK_MARK FSK_SPACE FSK_START
+%%
+
+commands: /* empty */
+	| commands command
+	;
+numbers:
+	numbers NUMBER	
+	|
+	NUMBER
+	;
+command:
+	comm numbers
+	|
+	comm sursa
+	|
+	comm spacing
+	|
+	comm direct
+	|
+	comm
+	;
+sursa:
+	INTERNAL	{surs="1";printf(" intern\n");}
+	|
+	EXTERNAL	{surs="2";printf(" extern\n");}
+	;
+spacing:
+	LINEAR		{spac="1";printf(" linear\n");}
+	|
+	LOGARITHMIC	{spac="0";printf(" logarithmic\n");}
+	;
+direct:
+	SW_UP	{dir="0";printf(" up\n");}
+	|
+	SW_DOWN	{dir="1";printf(" down\n");}
+	;
+comm:
+	AM_FREQ1 {printf("  >>carrier freq:");}
+	| VOLTAGE NUMBER {printf("  >>level: %i\n", $2);level=$2;}
+	| AM_SOURCE	{printf("  >>source:");}
+	| AM_DEPTH NUMBER	{printf("  >>percentage modulation: %i\n",$2);depth=$2;}
+	| AM_FREQ NUMBER	{printf("  >>modulating freq: %i\n", $2);freq=$2;}
+	| START	OK	{
+				if(surs=="1")
+					{
+						printf("M1 %s F1 %iX F2 %iZ F3 %iX F4 %iY\n", surs, freq, depth, freq1, level);
+						sprintf(DataBuffer,"M1 %s F1 %iX F2 %iZ F3 %iX F4 %iY", surs, freq, depth, freq1, level);
+						len = strlen(DataBuffer);
+						WriteString(DataBuffer, len);
+					}
+				else
+					{
+						printf("M1 %s F1 0Z F2 %iX F3 %iY\n", surs, freq1,level);
+						sprintf(DataBuffer,"M1 %s F1 0Z F2 %iX F3 %iY", surs, freq1,level);
+						len = strlen(DataBuffer);
+						WriteString(DataBuffer, len);
+					}
+			}
+	| FM_SOURCE	{printf("  >>source:");}
+	| FM_FREQ NUMBER	{printf("  >>modulating freq: %i\n",$2);freq=$2;}
+	| FM_PEAK NUMBER	{printf("  >>peak freq: %i\n",$2);peak=$2;}
+	| FREQ NUMBER	{printf("  >>carrier freq: %i\n",$2);freq1=$2;}
+	| FM_START OK	{
+		if(surs=="1")
+			{
+				printf("M2 %s F1 %iX F2 %iX F3 %iX F4 %iY\n", surs, freq, peak, freq1, level);
+				sprintf(DataBuffer,"M2 %s F1 %iX F2 %iX F3 %iX F4 %iY", surs, freq, peak, freq1, level);
+				len = strlen(DataBuffer);
+				WriteString(DataBuffer, len);
+			}
+		else
+			{
+				printf("M2 %s F1 %iX F2 %iX F3 %iY\n", surs, peak, freq1, level);
+				sprintf(DataBuffer,"M2 %s F1 %iX F2 %iX F3 %iY", surs, peak, freq1, level);
+				len = strlen(DataBuffer);
+				WriteString(DataBuffer, len);
+			}
+	}
+	| SW_FR_START NUMBER	{printf("  >>start freq: %i\n", $2);start_freq=$2;}
+	| SW_FR_STOP NUMBER	{printf("  >>stop freq: %i\n", $2);stop_freq=$2;}
+	| SW_LIN_LOG	{printf("  >>lin\log sweep:");}
+	| SW_UP_DOWN	{printf("  >>direction:");}
+	| SW_TIME NUMBER	{printf("  >>sweep time: %i\n", $2);time=$2;}
+	| SW_START OK	{
+				printf("M4 F1 %iX F2 %iX F3 %s F4 %i F5 %s F6 %iX F7 %iY\n", start_freq, stop_freq, spac, surs, dir, time, level);
+				sprintf(DataBuffer,"M4 F1 %iX F2 %iX F3 %s F4 %i F5 %s F6 %iX F7 %iY", start_freq, stop_freq, spac, surs, dir, time, level);
+				len = strlen(DataBuffer);
+				WriteString(DataBuffer, len);
+			}
+	| PM_SOURCE	{printf("  >>source:");}
+	| PM_FREQ NUMBER	{printf("  >>modulating freq: %i\n", $2);freq=$2;}
+	| PM_DEVIATION NUMBER	{printf("  >>peak phase deviation: %i\n", $2);deviat=$2;}
+	| PM_START OK	{
+				if(surs=="1")
+				{			
+					printf("M3 %s F1 %iX F2 %iX F3 %iX F4 %iY\n", surs, freq, deviat, freq1, level);
+					sprintf(DataBuffer,"M3 %s F1 %iX F2 %iX F3 %iX F4 %iY", surs, freq, deviat, freq1, level);
+					len = strlen(DataBuffer);
+					WriteString(DataBuffer, len);
+				}
+				else
+				{			
+					printf("M3 %s F1 %i F2 %iX F3 %iY\n", deviat, freq1, level);
+					sprintf(DataBuffer,"M3 %s F1 %i F2 %iX F3 %iY", deviat, freq1, level);
+					len = strlen(DataBuffer);
+					WriteString(DataBuffer, len);
+				}
+	}
+	| FUNCTION SINUSOID 	{
+					printf("B F1 %iX F2 %iY\n", freq1, level);
+					sprintf(DataBuffer,"B F1 %iX F2 %iY", freq1, level);
+					len = strlen(DataBuffer);
+					WriteString(DataBuffer, len);
+				}
+	| FUNCTION NOISE	{
+					printf("V F1 3 F2 %i F3 %iX F4 %iY\n", surs, freq1, level);
+					sprintf(DataBuffer, "V F1 3 F2 %i F3 %iX F4 %iY", surs, freq1, level);
+					len = strlen(DataBuffer);
+					WriteString(DataBuffer, len);
+				}
+	| FUNCTION TRIANGLE	{
+					printf("V F1 2 F2 %i F3 %iX F4 %iY\n", surs, freq, level);
+					sprintf(DataBuffer, "V F1 2 F2 %i F3 %iX F4 %iY", surs, freq, level);
+					len = strlen(DataBuffer);
+					WriteString(DataBuffer, len);
+				}
+	| TRIGGER {printf("  >>trigger source:");}
+	| FSK_MARK NUMBER {printf("  >>mark freq: %i\n", $2);n1=$2;}
+	| FSK_SPACE NUMBER {printf("  >>space freq: %i\n", $2);n2=$2;}
+	| FSK_SOURCE {printf("  >>source:");}
+	| FSK_START OK {
+		if(surs=="1")
+			{
+				printf("M5 %s F1 %iX F2 %iX F3 %iX %iY\n", surs, freq1, n1, n2, level);
+				sprintf(DataBuffer,"M5 %s F1 %iX F2 %iX F3 %iX %iY", surs, freq1, n1, n2, level);
+				len = strlen(DataBuffer);
+				WriteString(DataBuffer, len);
+			}
+		else
+			{
+				printf("M5 %s F1 %iX F2 %iX F3 %iY\n", surs,n1,n2,level); 
+				sprintf(DataBuffer,"M5 %s F1 %iX F2 %iX F3 %iY", surs,n1,n2,level);
+				len = strlen(DataBuffer);
+				WriteString(DataBuffer, len);
+			}
+	}	
+	;
+%%
+
+//--------------------
+HANDLE ConfigureSerialPort(LPCSTR  lpszPortName)
+{
+    HANDLE hComm = NULL;
+    DWORD dwError;
+    DCB PortDCB;
+    COMMTIMEOUTS CommTimeouts;
+    hComm = CreateFile (lpszPortName,
+        GENERIC_READ | GENERIC_WRITE,
+        0,
+        NULL,
+        OPEN_EXISTING,
+        0,
+        NULL);
+
+    PortDCB.DCBlength = sizeof (DCB);
+    GetCommState (hComm, &PortDCB);
+    PortDCB.BaudRate = 9600;
+    PortDCB.fBinary = TRUE;
+    PortDCB.fParity = TRUE;
+    PortDCB.fOutxCtsFlow = FALSE;
+    PortDCB.fOutxDsrFlow = FALSE;
+    PortDCB.fDtrControl = DTR_CONTROL_ENABLE;
+    PortDCB.fDsrSensitivity = FALSE;
+    PortDCB.fTXContinueOnXoff = TRUE;
+    PortDCB.fOutX = FALSE;
+    PortDCB.fInX = FALSE;
+    PortDCB.fErrorChar = FALSE;
+    PortDCB.fNull = FALSE;
+    PortDCB.fRtsControl = RTS_CONTROL_ENABLE;
+    PortDCB.fAbortOnError = FALSE;
+    PortDCB.ByteSize = 8;
+    PortDCB.Parity = NOPARITY;
+    PortDCB.StopBits = ONESTOPBIT;
+
+    if (!SetCommState (hComm, &PortDCB))
+    {
+        printf("Could not configure serial port\n");
+        return NULL;
+    }
+
+    GetCommTimeouts (hComm, &CommTimeouts);
+    CommTimeouts.ReadIntervalTimeout = MAXDWORD;
+    CommTimeouts.ReadTotalTimeoutMultiplier = 0;
+    CommTimeouts.ReadTotalTimeoutConstant = 0;
+    CommTimeouts.WriteTotalTimeoutMultiplier = 0;
+    CommTimeouts.WriteTotalTimeoutConstant = 0;
+    if (!SetCommTimeouts (hComm, &CommTimeouts))
+    {
+        printf("Could not set timeouts\n");
+        return NULL;
+    }
+    return hComm;
+}
+
+void ClosePort()
+{
+    CloseHandle(hPort);
+    return;
+}
+
+BOOL WriteByte(BYTE bybyte)
+{
+    DWORD iBytesWritten=0;
+    DWORD iBytesToRead = 1;
+    if(WriteFile(hPort,(LPCVOID) 
+        &bybyte,iBytesToRead,&iBytesWritten,NULL)==0)
+        return FALSE;
+    else return TRUE;
+}
+
+BOOL WriteString(const void *instring, int length)
+{
+    int index;
+    BYTE *inbyte = (BYTE *) instring;
+    for(index = 0; index< length; ++index)
+    {
+        if (WriteByte(inbyte[index]) == FALSE)
+            return FALSE;
+    }
+    return TRUE;
+}
+//---------------------
+
+int yywrap()
+{
+	return 1;
+}
+
+void prompt()
+{
+	printf(">");
+}
+
+main()
+{
+	//prompt();
+    hPort = ConfigureSerialPort("COM1");
+    if(hPort == NULL)
+    {
+        printf("Com port configuration failed\n");
+        return -1;
+    }
+	yyparse();
+	ClosePort();
+}
+
+  int yyerror(void)
+  {
+      printf("Error\n");
+      exit(1);
+  }
+
+
